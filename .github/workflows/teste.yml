@@ -24,8 +24,8 @@ jobs:
     - name: Get current time and random number
       id: set_conditions
       run: |
-        CURRENT_HOUR=$(date -u +%H)
-        CURRENT_MINUTE=$(date -u +%M)
+        CURRENT_HOUR=$(TZ='America/Sao_Paulo' date +%H)
+        CURRENT_MINUTE=$(TZ='America/Sao_Paulo' date +%M)
         RANDOM_NUMBER=$(( $RANDOM % 10 + 1 ))
 
         echo "🕒 UTC Time: $CURRENT_HOUR:$CURRENT_MINUTE"
