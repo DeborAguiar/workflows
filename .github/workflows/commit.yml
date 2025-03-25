@@ -1,36 +1,44 @@
-name: Bishwa's Daily Commit
+name: Auto Commit
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Runs every minute
+    - cron: '*/5 * * * *'  # Reduzi para 5 minutos para testes
+  workflow_dispatch:  # Permite execução manual
+
+permissions:
+  contents: write  # Permissão explícita para push
 
 jobs:
   commit:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout repo
+      uses: actions/checkout@v4
       with:
-        ref: main 
+        ref: main
+        fetch-depth: 0  # Garante o histórico completo
 
-    - name: Create file and commit
+    - name: Update file
       run: |
         FILE="commit_number.md"
+        # Cria ou atualiza o arquivo
         if [ ! -f "$FILE" ]; then
-          echo "Hello, my name is bishwa shah" > "$FILE"
-          echo "commit number: 1" >> "$FILE"
+          echo "Initial commit" > "$FILE"
+          echo "count: 1" >> "$FILE"
         else
-          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
-          if [ -z "$CURRENT_COUNT" ]; then
-            CURRENT_COUNT=0
-          fi
-          NEXT_COUNT=$((CURRENT_COUNT + 1))
-          sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
+          COUNT=$(grep -oP 'count: \K\d+' "$FILE" || echo "0")
+          NEW_COUNT=$((COUNT + 1))
+          sed -i "s/count: .*/count: $NEW_COUNT/" "$FILE"
         fi
+
+        # Configura git
         git config --global user.name "DeborAguiar"
         git config --global user.email "debora.aguiar.boni@gmail.com"
+        
+        # Commit e push (com tratamento de erros)
         git add "$FILE"
-        git commit -m "Hello, my name is bishwa shah nice to meet you"
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/DeborAguiar/test.git
+        git diff-index --quiet HEAD || git commit -m "Update count to $NEW_COUNT"
+        git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
