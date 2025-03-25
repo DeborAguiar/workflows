@@ -10,12 +10,6 @@ jobs:
   teste:
     runs-on: ubuntu-latest
     steps:
-    - name: Add random delay
-      run: |
-        DELAY=$(( RANDOM % 20 + 10 ))
-        echo "⏳ Delay: $DELAY seconds"
-        sleep $DELAY
-
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
