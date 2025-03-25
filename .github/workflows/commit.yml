@@ -1,8 +1,8 @@
-name: Daily Commit
+name: Conditional Commit
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Every day at midnight UTC to runs every 7-8 min set cron to '*/1 * * * *'
+    - cron: '*/1 * * * *'  # Runs every minute
 
 jobs:
   commit:
@@ -14,7 +14,15 @@ jobs:
       with:
         ref: main 
 
-    - name: Create file and commit
+    - name: Get current hour and generate random number
+      run: |
+        CURRENT_HOUR=$(date -u +%H)
+        RANDOM_NUMBER=$(( $RANDOM % 10 + 1 ))
+        echo "CURRENT_HOUR=$CURRENT_HOUR" >> $GITHUB_ENV
+        echo "RANDOM_NUMBER=$RANDOM_NUMBER" >> $GITHUB_ENV
+        
+    - name: Create file and commit (only if conditions are met)
+      if: env.CURRENT_HOUR >= 7 && env.RANDOM_NUMBER > 6
       run: |
         FILE="commit_number.md"
         if [ ! -f "$FILE" ]; then
