@@ -57,8 +57,8 @@ jobs:
           sed -i "s/commit number: .*/commit number: $NEXT_COUNT/" "$FILE"
         fi
 
-        git config --global user.name "beesou777"
-        git config --global user.email "sbeesou@gmail.com"
+        git config --global user.name "DeborAguiar"
+        git config --global user.email "debora.aguiar.boni@gmail.com"
         git add "$FILE"
         git commit -m "Update commit number: $NEXT_COUNT" || echo "⚠️ No changes to commit"
         git push || echo "⚠️ Push failed (check permissions)"
