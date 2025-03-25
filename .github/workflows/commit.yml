@@ -19,7 +19,6 @@ jobs:
         ref: main
 
     - name: Update file
-      uses: actions/checkout@v4
       run: |
         FILE="commit_number.md"
         # Cria ou atualiza o arquivo
