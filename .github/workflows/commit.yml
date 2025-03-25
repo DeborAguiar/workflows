@@ -10,36 +10,29 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         ref: main 
 
-    - name: Get current hour and generate random number
+    - name: Get current time and random number
+      id: set_conditions
       run: |
+        # Get UTC hour (0-23) and minute (for debug)
         CURRENT_HOUR=$(date -u +%H)
+        CURRENT_MINUTE=$(date -u +%M)
+        # Generate random number (1-10)
         RANDOM_NUMBER=$(( $RANDOM % 10 + 1 ))
+
+        # Debug: Print all values
+        echo "🕒 UTC Time: $CURRENT_HOUR:$CURRENT_MINUTE"
+        echo "🎲 Random Number: $RANDOM_NUMBER"
+        echo "🔍 Condition Check: 7am? $([ $CURRENT_HOUR -ge 7 ] && echo "YES" || echo "NO"), Random >6? $([ $RANDOM_NUMBER -gt 6 ] && echo "YES" || echo "NO")"
+
+        # Set output for next steps
         echo "CURRENT_HOUR=$CURRENT_HOUR" >> $GITHUB_ENV
         echo "RANDOM_NUMBER=$RANDOM_NUMBER" >> $GITHUB_ENV
-        
-    - name: Create file and commit (only if conditions are met)
-      if: env.CURRENT_HOUR >= 7 && env.RANDOM_NUMBER > 6
+        echo "should_run=$(( $CURRENT_HOUR >= 7 && $RANDOM_NUMBER > 6 ))" >> $GITHUB_OUTPUT
+
+    - name: Decision Log
       run: |
-        FILE="commit_number.md"
-        if [ ! -f "$FILE" ]; then
-          echo "Hello!" > "$FILE"
-          echo "commit number: 1" >> "$FILE"
-        else
-          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
-          if [ -z "$CURRENT_COUNT" ]; then
-            CURRENT_COUNT=0
-          fi
-          NEXT_COUNT=$((CURRENT_COUNT + 1))
-          sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
-        fi
-        git config --global user.name "DeborAguiar"
-        git config --global user.email "debora.aguiar.boni@gmail.com"
-        git add "$FILE"
-        git commit -m "Hello! nice to meet you"
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/DeborAguiar/test.git
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        echo "### DECISION SUMMARY ###"
