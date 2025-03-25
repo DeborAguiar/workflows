@@ -18,17 +18,19 @@ jobs:
       with:
         ref: main
 
-    - name: Update file
+    - name: Create file and commit
       run: |
         FILE="commit_number.md"
-        # Cria ou atualiza o arquivo
         if [ ! -f "$FILE" ]; then
-          echo "Initial commit" > "$FILE"
-          echo "count: 1" >> "$FILE"
+          echo "Hello, my name is bishwa shah" > "$FILE"
+          echo "commit number: 1" >> "$FILE"
         else
-          COUNT=$(grep -oP 'count: \K\d+' "$FILE" || echo "0")
-          NEW_COUNT=$((COUNT + 1))
-          sed -i "s/count: .*/count: $NEW_COUNT/" "$FILE"
+          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
+          if [ -z "$CURRENT_COUNT" ]; then
+            CURRENT_COUNT=0
+          fi
+          NEXT_COUNT=$((CURRENT_COUNT + 1))
+          sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
         fi
 
         # Configura git
