@@ -2,47 +2,17 @@ name: Conditional Commit
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Tenta rodar a cada minuto
+    - cron: '*/1 * * * *'  # Runs every minute
 
 jobs:
-  commit:
+  commit_check:  # Renomeado para um nome único
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        ref: main 
-
-    - name: Create file and commit
+    - name: Add random delay
       run: |
-        FILE="commit_number.md"
-        if [ ! -f "$FILE" ]; then
-          echo "Hello!" > "$FILE"
-          echo "commit number: 1" >> "$FILE"
-        else
-          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
-          if [ -z "$CURRENT_COUNT" ]; then
-            CURRENT_COUNT=0
-          fi
-          NEXT_COUNT=$((CURRENT_COUNT + 1))
-          sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
-        fi
-        git config --global user.name "DeborAguiar"
-        git config --global user.email "debora.aguiar.boni@gmail.com"
-        git add "$FILE"
-        git commit -m "Hello! nice to meet you"
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/DeborAguiar/test.git
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  commit:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Add random delay (avoid GitHub throttling)
-      run: |
-        DELAY=$(( RANDOM % 20 + 10 ))  # Espera entre 10 e 30 segundos
-        echo "⏳ Adding random delay: $DELAY seconds"
+        DELAY=$(( RANDOM % 20 + 10 ))
+        echo "⏳ Delay: $DELAY seconds"
         sleep $DELAY
 
     - name: Checkout repository
@@ -59,7 +29,7 @@ jobs:
 
         echo "🕒 UTC Time: $CURRENT_HOUR:$CURRENT_MINUTE"
         echo "🎲 Random Number: $RANDOM_NUMBER"
-        echo "🔍 Condition Check: After 7am UTC? $([ $CURRENT_HOUR -ge 7 ] && echo "YES" || echo "NO")"
+        echo "🔍 After 7am UTC? $([ $CURRENT_HOUR -ge 7 ] && echo "YES" || echo "NO")"
         echo "🔍 Random > 6? $([ $RANDOM_NUMBER -gt 6 ] && echo "YES" || echo "NO")"
 
         echo "CURRENT_HOUR=$CURRENT_HOUR" >> $GITHUB_ENV
@@ -69,10 +39,9 @@ jobs:
     - name: Decision Log
       run: |
         echo "### DECISION ###"
-        echo "Should run? $([ ${{ steps.set_conditions.outputs.should_run }} == '1' ] && echo "✅ YES" || echo "❌ NO (conditions not met)")"
-        echo "If NO, check:"
-        echo "- Current UTC hour >= 7? (${{ env.CURRENT_HOUR }})"
-        echo "- Random number > 6? (${{ env.RANDOM_NUMBER }})"
+        echo "Should run? $([ ${{ steps.set_conditions.outputs.should_run }} == '1' ] && echo "✅ YES" || echo "❌ NO")"
+        echo "- UTC Hour: ${{ env.CURRENT_HOUR }}"
+        echo "- Random: ${{ env.RANDOM_NUMBER }}"
 
     - name: Create file and commit
       if: steps.set_conditions.outputs.should_run == '1'
@@ -90,7 +59,7 @@ jobs:
         git config --global user.name "DeborAguiar"
         git config --global user.email "debora.aguiar.boni@gmail.com"
         git add "$FILE"
-        git commit -m "Update commit number: $NEXT_COUNT" || echo "⚠️ No changes to commit"
-        git push || echo "⚠️ Push failed (check permissions)"
+        git commit -m "Update commit number: $NEXT_COUNT" || echo "⚠️ No changes"
+        git push || echo "⚠️ Push failed"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
