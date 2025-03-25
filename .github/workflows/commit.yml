@@ -2,13 +2,19 @@ name: Conditional Commit
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Runs every minute
+    - cron: '*/1 * * * *'  # Tenta rodar a cada minuto
 
 jobs:
   commit:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Add random delay (avoid GitHub throttling)
+      run: |
+        DELAY=$(( RANDOM % 20 + 10 ))  # Espera entre 10 e 30 segundos
+        echo "⏳ Adding random delay: $DELAY seconds"
+        sleep $DELAY
+
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
@@ -17,22 +23,44 @@ jobs:
     - name: Get current time and random number
       id: set_conditions
       run: |
-        # Get UTC hour (0-23) and minute (for debug)
         CURRENT_HOUR=$(date -u +%H)
         CURRENT_MINUTE=$(date -u +%M)
-        # Generate random number (1-10)
         RANDOM_NUMBER=$(( $RANDOM % 10 + 1 ))
 
-        # Debug: Print all values
         echo "🕒 UTC Time: $CURRENT_HOUR:$CURRENT_MINUTE"
         echo "🎲 Random Number: $RANDOM_NUMBER"
-        echo "🔍 Condition Check: 7am? $([ $CURRENT_HOUR -ge 7 ] && echo "YES" || echo "NO"), Random >6? $([ $RANDOM_NUMBER -gt 6 ] && echo "YES" || echo "NO")"
+        echo "🔍 Condition Check: After 7am UTC? $([ $CURRENT_HOUR -ge 7 ] && echo "YES" || echo "NO")"
+        echo "🔍 Random > 6? $([ $RANDOM_NUMBER -gt 6 ] && echo "YES" || echo "NO")"
 
-        # Set output for next steps
         echo "CURRENT_HOUR=$CURRENT_HOUR" >> $GITHUB_ENV
         echo "RANDOM_NUMBER=$RANDOM_NUMBER" >> $GITHUB_ENV
         echo "should_run=$(( $CURRENT_HOUR >= 7 && $RANDOM_NUMBER > 6 ))" >> $GITHUB_OUTPUT
 
     - name: Decision Log
       run: |
-        echo "### DECISION SUMMARY ###"
+        echo "### DECISION ###"
+        echo "Should run? $([ ${{ steps.set_conditions.outputs.should_run }} == '1' ] && echo "✅ YES" || echo "❌ NO (conditions not met)")"
+        echo "If NO, check:"
+        echo "- Current UTC hour >= 7? (${{ env.CURRENT_HOUR }})"
+        echo "- Random number > 6? (${{ env.RANDOM_NUMBER }})"
+
+    - name: Create file and commit
+      if: steps.set_conditions.outputs.should_run == '1'
+      run: |
+        FILE="commit_number.md"
+        if [ ! -f "$FILE" ]; then
+          echo "Hello!" > "$FILE"
+          echo "commit number: 1" >> "$FILE"
+        else
+          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE" || echo "0")
+          NEXT_COUNT=$((CURRENT_COUNT + 1))
+          sed -i "s/commit number: .*/commit number: $NEXT_COUNT/" "$FILE"
+        fi
+
+        git config --global user.name "beesou777"
+        git config --global user.email "sbeesou@gmail.com"
+        git add "$FILE"
+        git commit -m "Update commit number: $NEXT_COUNT" || echo "⚠️ No changes to commit"
+        git push || echo "⚠️ Push failed (check permissions)"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
