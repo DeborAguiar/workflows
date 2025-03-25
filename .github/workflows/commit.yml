@@ -1,4 +1,4 @@
-name: Conditional Commit
+name: Bishwa's Daily Commit
 
 on:
   schedule:
@@ -10,23 +10,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
       with:
         ref: main 
 
-    - name: Get current hour and generate random number
-      run: |
-        CURRENT_HOUR=$(date -u +%H)
-        RANDOM_NUMBER=$(( $RANDOM % 10 + 1 ))
-        echo "CURRENT_HOUR=$CURRENT_HOUR" >> $GITHUB_ENV
-        echo "RANDOM_NUMBER=$RANDOM_NUMBER" >> $GITHUB_ENV
-        
-    - name: Create file and commit (only if conditions are met)
-      if: env.CURRENT_HOUR >= 7 && env.RANDOM_NUMBER > 6
+    - name: Create file and commit
       run: |
         FILE="commit_number.md"
         if [ ! -f "$FILE" ]; then
-          echo "Hello!" > "$FILE"
+          echo "Hello, my name is bishwa shah" > "$FILE"
           echo "commit number: 1" >> "$FILE"
         else
           CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
@@ -39,7 +30,7 @@ jobs:
         git config --global user.name "DeborAguiar"
         git config --global user.email "debora.aguiar.boni@gmail.com"
         git add "$FILE"
-        git commit -m "Hello! nice to meet you"
+        git commit -m "Hello, my name is bishwa shah nice to meet you"
         git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/DeborAguiar/test.git
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
