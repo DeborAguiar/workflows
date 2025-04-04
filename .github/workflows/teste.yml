@@ -24,12 +24,12 @@ jobs:
 
         echo "🕒 Horário de Brasília: $CURRENT_HOUR:$CURRENT_MINUTE"
         echo "🎲 Número Aleatório: $RANDOM_NUMBER"
-        echo "🔍 Depois das 19h? $([ $CURRENT_HOUR -ge 19 ] && echo "SIM" || echo "NÃO")"
-        echo "🔍 Número > 6? $([ $RANDOM_NUMBER -gt 6 ] && echo "SIM" || echo "NÃO")"
+        echo "🔍 Depois das 19h? $([ 10#$CURRENT_HOUR -ge 19 ] && echo "SIM" || echo "NÃO")"
+        echo "🔍 Número > 6? $([ 10#$RANDOM_NUMBER -gt 6 ] && echo "SIM" || echo "NÃO")"
 
         echo "CURRENT_HOUR=$CURRENT_HOUR" >> $GITHUB_ENV
         echo "RANDOM_NUMBER=$RANDOM_NUMBER" >> $GITHUB_ENV
-        echo "should_run=$(( $CURRENT_HOUR >= 19 && $RANDOM_NUMBER > 6 ))" >> $GITHUB_OUTPUT
+        echo "should_run=$(( 10#$CURRENT_HOUR >= 19 && 10#$RANDOM_NUMBER > 6 ))" >> $GITHUB_OUTPUT
 
     - name: Decision Log
       run: |
